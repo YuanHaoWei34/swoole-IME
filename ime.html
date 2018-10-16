@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>swoole聊天室</title>
+	<style type="text/css">
+		#main{
+			position: relative;
+			width: 450px;
+			height: 500px;
+			border: 1px solid #000000;
+			margin:0 auto;
+			display: none;
+		}
+		#content{
+			width: 100%;
+			height: 90%;
+			background:#f6f5ec;
+		}
+		#title{
+			text-align:center;
+			border-bottom: 2px solid #9d9087;
+			font-size: 19px;
+			font-weight: bold;
+			color: #00ae9d;
+			padding: 5px;
+		}
+		#msg{
+			padding-top: 5px;
+			padding-left: 5px;
+		}
+		#msg span{
+			display: block;
+			font-size: 13px;
+			color: #000;
+		}
+		#msg span em{margin-left: 5px;}
+		#footer{
+			height: 9%;
+			border-top: 3px solid #d9d6c3;
+			/*vertical-align: middle;*/
+			line-height: 40px;
+			text-align: center;
+		}
+		#footer input,button,#set input{
+			margin:5px;
+			border:2px solid #a1a1a1;
+			border-radius: 5px;
+
+		}
+
+		#set{
+			width: 450px;
+			height: 500px;
+			margin:0 auto;
+			border: 1px solid #000000;
+			background:#f6f5ec;
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<!-- 发送消息 -->
+	<div id="main">
+		<div id="content">
+			<div id="title">swoole聊天室</div>
+			<div id="msg"></div>
+		</div>
+		<div id="footer">
+			<input type="text" id="message" style="margin-left:10px;height:25px;width:300px;">
+        	<button onclick="sendMessage()" style="height:31px;width:75px;">发送</button>
+		</div>
+	</div>
+	<!-- 设置昵称 -->
+	<div id="set">
+		<div id="title">swoole设置昵称</div>
+		<input type="text" id="name" style="margin-left:10px;height:25px;width:300px;">
+        <button onclick="sendName()" style="height:31px;width:75px;">发送</button>
+	</div>
+</body>
+<script type="text/javascript">
+	//定义颜色数组
+	var color_arr = new Array("#f58220","#a3cf62","#6950a1","#c63c26","#f173ac","#ffe600","#2570a1","#f05b72");
+	var id = 0;
+	var msg = document.getElementById("msg");
+	//构建websocket服务
+	var socket = new WebSocket("ws://192.168.64.128:9502");
+	socket.onopen = function(event){
+
+	};
+	socket.onmessage = function(event){
+		var myDate =new Date();
+		// var y = myDate.getFullYear();
+		// var m = myDate.getMonth() + 1;
+		// var d = myDate.getDate();
+		var time = myDate.toLocaleString();
+		var num = Math.floor(Math.random(0,7)*10);
+		msg.innerHTML = msg.innerHTML.concat('<span id="ime'+id+'">'+event.data+'<em>'+time+'</em></span>');
+		var obj = document.getElementById('ime'+id);
+		obj.style.color = color_arr[num];
+		id++;
+	};
+	socket.onclose = function(event){
+		console.log('网络已断开');
+	};
+	socket.onerror = function(event){
+		console.log("error:"+event.data);
+	}; 
+	//发送消息
+	function sendMessage(){
+		var data = document.getElementById("message").value; //获取消息
+		if(data == ''){
+			alert('输入不能为空！');
+			return;
+		}
+		document.getElementById("message").value='';//清空数据
+		//发送消息
+		socket.send(data);
+	}
+	//发送昵称
+	function sendName(){
+		var data = document.getElementById("name").value;
+		socket.send("#name#"+data);
+		var mainObj = document.getElementById("main");
+		mainObj.style.display = "block";
+		var setObj = document.getElementById("set");
+		setObj.style.display = "none";
+	}
+</script>
+</html>
